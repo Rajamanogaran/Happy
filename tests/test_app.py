@@ -18,7 +18,41 @@ def test_dashboard_and_skills(client):
     skills = client.get("/api/skills").json()
     assert len(skills) == 100
     assert len({s["id"] for s in skills}) == 100
-    assert client.get("/api/status").json()["skills"] == 100
+    assert any(s["name"] == "Voice assistant" for s in skills)
+    status_data = client.get("/api/status").json()
+    assert status_data["skills"] == 100
+    assert status_data["voice"] is True
+
+
+def test_voice_endpoint(client):
+    r = client.get("/api/voice/status")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["status"] == "ready"
+    assert "voice-assistant" in data["features"]
+
+
+def test_web_agent_resilience_when_offline(client, monkeypatch):
+    from happy.app import jobs, run_agent
+
+    def fail_ddgs(*args, **kwargs):
+        raise ConnectionError("Simulated offline/TLS EOF")
+
+    monkeypatch.setattr(web, "search", lambda q: web.offline_search(q))
+    jobs["resilient-web"] = {
+        "id": "resilient-web",
+        "topic": "quantum computing",
+        "source": "web",
+        "status": "running",
+        "steps": ["Planner · Research goal accepted"],
+        "sources": [],
+        "result": "",
+    }
+    run_agent("resilient-web", "quantum computing", "web")
+    job = jobs["resilient-web"]
+    assert job["status"] == "complete"
+    assert len(job["sources"]) >= 1
+    assert "Quantum Computing" in job["sources"][0]["title"]
 
 
 def test_knowledge_lifecycle(client):
