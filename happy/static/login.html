@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Unlock Happy</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body class="login-page">
+    <main class="panel login-panel">
+      <div class="eyebrow">YOUR PRIVATE WORKSPACE</div>
+      <h1>Welcome to Happy<span class="cyan">.</span></h1>
+      <p>Enter your workspace password to continue.</p>
+      <form id="login-form">
+        <label for="password">Workspace password</label
+        ><input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          required
+          maxlength="1024"
+          autofocus
+        /><button class="primary" type="submit">Unlock workspace ↗</button>
+        <p id="login-error" role="alert"></p>
+      </form>
+      <small
+        >Set or change HAPPY_PASSWORD on the server. Sessions expire after 8
+        hours or a server restart.</small
+      >
+    </main>
+    <script src="/login.js"></script>
+  </body>
+</html>
