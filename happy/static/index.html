@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#080e13" />
+    <title>Happy — Personal intelligence</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Happy home"
+        ><span class="brand-icon">H<span>•</span></span
+        ><span>happy<span class="brand-dot">.</span></span></a
+      >
+      <div class="workspace">PERSONAL WORKSPACE <span>⌄</span></div>
+      <nav>
+        <button class="nav active" data-view="command">
+          <span>◈</span>Command center</button
+        ><button class="nav" data-view="chat"><span>▤</span>Conversation</button
+        ><button class="nav" data-view="skills">
+          <span>✧</span>Skill library <small>100</small></button
+        ><button class="nav" data-view="tools">
+          <span>⊞</span>Offline tools <small>12</small></button
+        ><button class="nav" data-view="agents">
+          <span>⌘</span>Agents <i></i></button
+        ><button class="nav" data-view="knowledge">
+          <span>▧</span>Knowledge</button
+        ><button class="nav" data-view="browser">
+          <span>◎</span>Web explorer
+        </button>
+      </nav>
+      <div class="side-label">YOUR INTELLIGENCE, LOCAL.</div>
+      <div class="model-card">
+        <span class="tiny-icon">⬡</span><b>TinyLlama 1.1B</b>
+        <p>Q2_K · Local language model</p>
+        <div>
+          <i class="status-dot"></i><span id="side-status">Checking model</span>
+        </div>
+      </div>
+      <button class="nav settings" data-view="settings">
+        <span>⚙</span>Settings
+      </button>
+      <div class="profile">
+        <div class="avatar">Y</div>
+        <div>You<span>Personal account · local</span></div>
+        <span>⌄</span>
+      </div>
+    </aside>
+    <div class="shell">
+      <header>
+        <div class="breadcrumb">
+          Workspace <span>/</span> <b id="page-name">Command center</b>
+        </div>
+        <div class="header-right">
+          <span class="private"><i></i> LOCAL-FIRST INTELLIGENCE</span
+          ><span class="header-divider"></span><span id="clock">00:00 UTC</span
+          ><button id="help" aria-label="Open setup">?</button>
+        </div>
+      </header>
+      <main>
+        <section id="view-command" class="view active">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow">YOUR PERSONAL AI OPERATING SYSTEM</div>
+              <h1>A little curiosity. <em>Limitless possibilities.</em></h1>
+              <p>
+                Your ideas, research, and everyday work. Connected by Happy.
+              </p>
+            </div>
+            <span class="version">HAPPY OS <b>v1.0</b></span>
+          </div>
+          <div class="dashboard-grid">
+            <section class="core panel">
+              <div class="panel-top">
+                <span><i class="cyan-dot"></i> INTELLIGENCE CORE</span
+                ><span class="micro">SYS / 001</span>
+              </div>
+              <div class="core-stage">
+                <div class="orbit orbit-outer"></div>
+                <div class="orbit orbit-mid"></div>
+                <div class="orbit orbit-inner"></div>
+                <div class="ring-label top-label">PERSONAL INTELLIGENCE</div>
+                <div class="crosshair cross-left">+</div>
+                <div class="crosshair cross-right">+</div>
+                <div class="core-center">
+                  <div class="core-symbol">h<span>•</span></div>
+                  <div class="core-name">H A P P Y</div>
+                  <div class="core-status" id="core-status">
+                    READY TO EXPLORE
+                  </div>
+                </div>
+                <div class="ring-label bottom-label">
+                  LOCAL CORE · HUMAN CURIOSITY
+                </div>
+                <div class="coordinate coord-left">01.100<br />NEURAL CORE</div>
+                <div class="coordinate coord-right">Q2_K<br />1.1B PARAMS</div>
+              </div>
+              <div class="core-caption">
+                <h2>Your next idea starts here.</h2>
+                <p>
+                  Ask a question. Explore the unknown. Make something great.
+                </p>
+              </div>
+              <form id="quick-form" class="quick-input">
+                <span>✧</span
+                ><input
+                  id="quick-message"
+                  placeholder="What’s on your mind?"
+                  required
+                  aria-label="Ask Happy"
+                /><button type="submit" aria-label="Send message">↗</button>
+              </form>
+              <div class="suggestions">
+                <button
+                  data-prompt="Help me learn something new. Suggest three fascinating topics."
+                >
+                  Teach me something <span>↗</span></button
+                ><button
+                  data-prompt="Help me turn an idea into an actionable project plan."
+                >
+                  Plan a project <span>↗</span></button
+                ><button data-action="research">
+                  Explore a topic <span>↗</span>
+                </button>
+              </div>
+              <div class="core-footer">
+                <span><i></i> Private by design</span
+                ><span>Powered by TinyLlama <b>↗</b></span>
+              </div>
+            </section>
+            <div class="right-stack">
+              <section class="panel system-panel">
+                <div class="panel-top">
+                  <span>SYSTEM OVERVIEW</span
+                  ><span class="micro">LIVE <i class="cyan-dot"></i></span>
+                </div>
+                <div class="system-row">
+                  <span>Language model</span><b id="model-state">Checking…</b>
+                </div>
+                <div class="system-row">
+                  <span>Inference engine</span
+                  ><b>llama.cpp <span class="subtle">/ CPU</span></b>
+                </div>
+                <div class="system-row">
+                  <span>Data storage</span
+                  ><b class="cyan">On your device <span>⌁</span></b>
+                </div>
+                <div class="system-row">
+                  <span>Web access</span
+                  ><b>On request <span class="subtle">◎</span></b>
+                </div>
+                <div class="signal-bars" aria-hidden="true"></div>
+                <div class="system-foot">
+                  DESIGNED TO WORK WITH YOU, NOT INSTEAD OF YOU.
+                </div>
+              </section>
+              <section class="panel knowledge-card">
+                <div class="panel-top">
+                  <span>GROWING WITH YOU</span><span>✧</span>
+                </div>
+                <h3>A mind that keeps<br />your discoveries.</h3>
+                <p>
+                  Save what matters. Give Happy the context to help you better.
+                </p>
+                <div class="memory-bottom">
+                  <div>
+                    <b id="memory-count">0</b><span>saved memories</span>
+                  </div>
+                  <button data-go="knowledge">
+                    Open knowledge <span>↗</span>
+                  </button>
+                </div>
+              </section>
+            </div>
+          </div>
+          <div class="section-heading">
+            <h2>
+              More than a conversation<span
+                >One workspace. A hundred ways to move forward.</span
+              >
+            </h2>
+            <button data-go="skills">Explore all skills <span>↗</span></button>
+          </div>
+          <div class="feature-grid">
+            <button class="feature" data-go="skills">
+              <div class="feature-icon">✧</div>
+              <span class="feature-number">01 / 100 SKILLS</span>
+              <h3>A skill for every spark.</h3>
+              <p>
+                Write, code, analyze, and create.<br />Find your next
+                superpower.
+              </p>
+              <span class="feature-arrow">↗</span></button
+            ><button class="feature" data-go="agents">
+              <div class="feature-icon violet">⌘</div>
+              <span class="feature-number">02 / AGENT WORKFLOWS</span>
+              <h3>Give curiosity a mission.</h3>
+              <p>
+                Set a research goal. Let a team of<br />focused steps do the
+                groundwork.
+              </p>
+              <span class="feature-arrow">↗</span></button
+            ><button class="feature" data-go="browser">
+              <div class="feature-icon blue">◎</div>
+              <span class="feature-number">03 / CONNECTED KNOWLEDGE</span>
+              <h3>Beyond what’s already known.</h3>
+              <p>
+                Explore the live web. Bring new<br />perspectives into your
+                workspace.
+              </p>
+              <span class="feature-arrow">↗</span>
+            </button>
+          </div>
+          <footer>
+            <span><i class="cyan-dot"></i> YOUR SPACE TO THINK BIGGER.</span
+            ><span>Built for curious minds. <b>Made to be yours.</b></span>
+          </footer>
+        </section>
+        <section id="view-chat" class="view">
+          <div class="page-heading">
+            <div class="eyebrow">THINK OUT LOUD</div>
+            <h1>Conversation<span class="cyan">.</span></h1>
+            <p>A quiet space for your next big idea.</p>
+          </div>
+          <div class="chat-layout panel">
+            <div class="chat-toolbar">
+              <label
+                >Skill
+                <select id="chat-skill"></select></label
+              ><label class="toggle"
+                ><input type="checkbox" id="chat-web" /> Search the web</label
+              ><button id="export-chat">Export chat ↓</button
+              ><button id="clear-chat">Clear conversation</button>
+            </div>
+            <div id="messages">
+              <div class="welcome">
+                <div class="feature-icon">✧</div>
+                <h2>Hello, I’m Happy.</h2>
+                <p>Bring a question, an idea, or a little curiosity.</p>
+                <small id="chat-notice">Checking local model…</small>
+              </div>
+            </div>
+            <form id="chat-form">
+              <textarea
+                id="chat-message"
+                rows="2"
+                maxlength="4000"
+                placeholder="Ask Happy anything…"
+                required
+                aria-label="Your message"
+              ></textarea
+              ><button class="primary" id="send-chat">Send ↗</button>
+            </form>
+            <div class="chat-disclaimer">
+              Conversations are saved on this device. Clear conversation
+              permanently deletes the saved chat. Verify important information.
+            </div>
+          </div>
+        </section>
+        <section id="view-skills" class="view">
+          <div class="page-heading">
+            <div class="eyebrow">100 WAYS TO GET STARTED</div>
+            <h1>Your skill library<span class="cyan">.</span></h1>
+            <p>
+              Purpose-built instruction presets. One local model, many
+              possibilities.
+            </p>
+          </div>
+          <div class="filter-bar">
+            <input
+              id="skill-search"
+              placeholder="Search skills…"
+              aria-label="Search skills"
+            /><select id="skill-category">
+              <option value="">All categories</option></select
+            ><span id="skill-count">100 skills</span>
+          </div>
+          <div id="skill-grid"></div>
+        </section>
+        <section id="view-agents" class="view">
+          <div class="page-heading">
+            <div class="eyebrow">CURIOSITY, WITH A PLAN</div>
+            <h1>Your research crew<span class="cyan">.</span></h1>
+            <p>
+              A background workflow that gathers evidence from the web or your
+              saved knowledge.
+            </p>
+          </div>
+          <div class="agent-flow">
+            <span>01 <b>Planner</b> Define the mission</span><span>→</span
+            ><span>02 <b>Researcher</b> Find sources</span><span>→</span
+            ><span>03 <b>Analyst</b> Build the brief</span>
+          </div>
+          <form id="agent-form" class="panel action-form">
+            <input
+              id="agent-topic"
+              maxlength="500"
+              placeholder="What should we investigate?"
+              required
+              aria-label="Research topic"
+            /><select id="agent-source" aria-label="Research source">
+              <option value="web">Live web</option>
+              <option value="knowledge">
+                Saved knowledge · offline
+              </option></select
+            ><button class="primary">Launch research ↗</button>
+          </form>
+          <p class="hint">
+            Read-only research. No purchases, code execution, or autonomous
+            changes. Briefs are saved only with your approval.
+          </p>
+          <p class="hint">
+            Research history persists across restarts. Cancellation stops at the
+            next checkpoint; an in-progress web request may take a moment to
+            return.
+          </p>
+          <div id="agent-list"></div>
+        </section>
+        <section id="view-knowledge" class="view">
+          <div class="page-heading">
+            <div class="eyebrow">CONTEXT THAT STAYS WITH YOU</div>
+            <h1>A growing knowledge base<span class="cyan">.</span></h1>
+            <p>
+              Saved locally. Retrieved in conversations when relevant. Not model
+              retraining.
+            </p>
+          </div>
+          <form id="note-form" class="panel note-form">
+            <h3 id="note-heading">Add a memory</h3>
+            <input id="note-id" type="hidden" /><input
+              id="note-source"
+              type="hidden"
+              value="Note"
+            /><input
+              id="note-title"
+              placeholder="Give your note a title"
+              maxlength="200"
+              required
+              aria-label="Note title"
+            /><textarea
+              id="note-content"
+              placeholder="Paste notes, facts, or anything you want Happy to remember…"
+              maxlength="30000"
+              rows="4"
+              required
+              aria-label="Note content"
+            ></textarea>
+            <div class="note-actions">
+              <button
+                id="cancel-note-edit"
+                type="button"
+                class="tool-button"
+                hidden
+              >
+                Cancel editing</button
+              ><button type="button" id="import-document" class="tool-button">
+                Load .txt / .md document ↑</button
+              ><input
+                id="document-file"
+                type="file"
+                accept=".txt,.md,text/plain,text/markdown"
+                hidden
+              /><button id="save-note" class="primary">
+                Save to knowledge +
+              </button>
+            </div>
+          </form>
+          <div class="knowledge-tools">
+            <input
+              id="note-search"
+              placeholder="Search saved knowledge…"
+              aria-label="Search saved knowledge"
+            /><a
+              class="tool-button"
+              href="/api/knowledge/export"
+              download="happy-knowledge.json"
+              >Export backup ↓</a
+            ><button id="import-notes" class="tool-button">
+              Import backup ↑</button
+            ><input
+              type="file"
+              id="import-file"
+              accept="application/json,.json"
+              hidden
+            />
+          </div>
+          <div id="note-list"></div>
+        </section>
+        <section id="view-browser" class="view">
+          <div class="page-heading">
+            <div class="eyebrow">FOLLOW YOUR CURIOSITY</div>
+            <h1>The web, in focus<span class="cyan">.</span></h1>
+            <p>
+              Search public sources or read a page. Save discoveries to your
+              knowledge base.
+            </p>
+          </div>
+          <form id="browser-form" class="panel action-form">
+            <span>◎</span
+            ><input
+              id="browser-query"
+              placeholder="Search a topic or paste an https:// URL"
+              maxlength="500"
+              required
+              aria-label="Search query or URL"
+            /><button class="primary">Explore ↗</button>
+          </form>
+          <div id="browser-results" class="empty-state">
+            <div>◎</div>
+            <h3>A whole world to discover.</h3>
+            <p>Search results and sources will appear here.</p>
+          </div>
+        </section>
+        <section id="view-tools" class="view">
+          <div class="page-heading">
+            <div class="eyebrow">USEFUL WITHOUT A MODEL</div>
+            <h1>Offline tool studio<span class="cyan">.</span></h1>
+            <p>
+              12 real utilities. No language model, network requests, or pretend
+              intelligence.
+            </p>
+          </div>
+          <div class="tools-layout">
+            <div class="panel tool-picker" id="tool-picker"></div>
+            <div class="panel tool-workspace">
+              <h2 id="tool-name">Choose a tool</h2>
+              <p id="tool-description"></p>
+              <form id="tool-form">
+                <label for="tool-input">Input</label
+                ><textarea
+                  id="tool-input"
+                  rows="8"
+                  maxlength="30000"
+                  required
+                  spellcheck="false"
+                ></textarea>
+                <div id="tool-other-wrap" hidden>
+                  <label for="tool-other">Revised text</label
+                  ><textarea
+                    id="tool-other"
+                    rows="6"
+                    maxlength="30000"
+                    spellcheck="false"
+                  ></textarea>
+                </div>
+                <div class="tool-actions">
+                  <button type="button" id="tool-example" class="tool-button">
+                    Load example</button
+                  ><button class="primary" id="run-tool">Run locally ↗</button>
+                </div>
+              </form>
+              <div id="tool-result" hidden>
+                <div class="section-heading">
+                  <h3>
+                    Result <small>DETERMINISTIC · NOT AI-GENERATED</small>
+                  </h3>
+                </div>
+                <pre id="tool-output" tabindex="0"></pre>
+                <div class="tool-actions">
+                  <button id="copy-tool" class="tool-button">Copy result</button
+                  ><button id="download-tool" class="tool-button">
+                    Download ↓</button
+                  ><button id="save-tool" class="tool-button">
+                    Save to knowledge +
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section id="view-settings" class="view">
+          <div class="page-heading">
+            <div class="eyebrow">YOUR AI, YOUR DEVICE</div>
+            <h1>Local by intention<span class="cyan">.</span></h1>
+            <p>Get Happy’s language model ready to think with you.</p>
+          </div>
+          <div class="panel setup">
+            <div class="security-settings">
+              <h3>Workspace protection</h3>
+              <p id="protection-status">Checking protection…</p>
+              <button id="logout" class="tool-button" hidden>
+                Lock workspace
+              </button>
+              <p>
+                Set <code>HAPPY_PASSWORD</code> in the server environment to
+                enable the password gate. No default password is provided.
+              </p>
+            </div>
+            <h2>TinyLlama 1.1B · Q2_K</h2>
+            <p id="setup-status"></p>
+            <h3>1. Install the local inference engine</h3>
+            <pre>pip install llama-cpp-python</pre>
+            <h3>2. Download the model</h3>
+            <p>
+              Run from the project directory. The download is approximately 480
+              MB.
+            </p>
+            <pre>python scripts/download_model.py</pre>
+            <h3>3. Restart Happy</h3>
+            <pre>uvicorn happy.app:app --host 0.0.0.0 --port 8000</pre>
+            <p>
+              Or set <code>HAPPY_MODEL</code> to your GGUF file path. CPU
+              inference is used by default.
+            </p>
+            <div class="notice">
+              Your notes and inference stay local. Web searches and page
+              requests contact external services only when you request them. Set
+              HAPPY_PASSWORD on the server to enable password protection. Use
+              HTTPS and an authenticated reverse proxy for internet deployment.
+            </div>
+            <h3>Capabilities, honestly</h3>
+            <p>
+              100 skills are curated prompts, not separate trained models.
+              Agents follow a fixed research workflow. TinyLlama has limited
+              reasoning and accuracy; saved knowledge provides context, not
+              permanent training.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+    <div id="toast" role="status"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

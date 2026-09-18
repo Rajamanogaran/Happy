@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "happy-local-workspace"
+version = "1.0.0"
+description = "A local-first personal AI workspace with offline tools, knowledge, and research agents"
+requires-python = ">=3.10"
+dynamic = ["dependencies"]
+
+[project.scripts]
+happy = "happy.__main__:main"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.packages.find]
+include = ["happy*"]
+
+[tool.setuptools.package-data]
+happy = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

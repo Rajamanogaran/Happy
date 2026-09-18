@@ -1,0 +1,13 @@
+services:
+  happy:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      HAPPY_PASSWORD: ${HAPPY_PASSWORD:-}
+      HAPPY_DB: /data/happy.sqlite3
+    volumes:
+      - happy-data:/data
+    restart: unless-stopped
+volumes:
+  happy-data:
