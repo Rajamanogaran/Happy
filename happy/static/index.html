@@ -102,6 +102,25 @@
                   Ask a question. Explore the unknown. Make something great.
                 </p>
               </div>
+              <div class="voice-assistant-bar">
+                <button type="button" id="voice-assistant-btn" class="voice-hero-btn" aria-label="Activate voice assistant">
+                  <span class="voice-mic-icon">🎙</span>
+                  <span id="voice-hero-text">Talk to Happy · Voice Assistant</span>
+                  <span class="voice-waves" aria-hidden="true">
+                    <i></i><i></i><i></i><i></i><i></i>
+                  </span>
+                </button>
+                <button type="button" id="voice-audio-toggle" class="voice-sound-btn" title="Toggle voice speech output" aria-label="Toggle voice output">
+                  <span id="voice-audio-icon">🔊</span>
+                </button>
+              </div>
+              <div id="voice-status-banner" class="voice-status-banner" hidden>
+                <div class="voice-banner-top">
+                  <span id="voice-status-badge">LISTENING…</span>
+                  <button type="button" id="voice-stop-btn" class="voice-dismiss" aria-label="Stop voice">⏹ Stop</button>
+                </div>
+                <p id="voice-status-text">Speak now. Listening to your voice…</p>
+              </div>
               <form id="quick-form" class="quick-input">
                 <span>✧</span
                 ><input
@@ -230,6 +249,8 @@
                 <select id="chat-skill"></select></label
               ><label class="toggle"
                 ><input type="checkbox" id="chat-web" /> Search the web</label
+              ><button type="button" id="chat-voice-toggle" class="tool-button voice-toggle-btn" title="Toggle automatic voice speech output">
+                <span id="chat-voice-label">🔊 Voice replies: ON</span></button
               ><button id="export-chat">Export chat ↓</button
               ><button id="clear-chat">Clear conversation</button>
             </div>
@@ -242,15 +263,20 @@
               </div>
             </div>
             <form id="chat-form">
-              <textarea
-                id="chat-message"
-                rows="2"
-                maxlength="4000"
-                placeholder="Ask Happy anything…"
-                required
-                aria-label="Your message"
-              ></textarea
-              ><button class="primary" id="send-chat">Send ↗</button>
+              <div class="chat-input-row">
+                <textarea
+                  id="chat-message"
+                  rows="2"
+                  maxlength="4000"
+                  placeholder="Ask Happy anything…"
+                  required
+                  aria-label="Your message"
+                ></textarea>
+                <button type="button" id="chat-mic-btn" class="chat-mic-btn" title="Voice input (Microphone)" aria-label="Voice input">
+                  🎙
+                </button>
+              </div>
+              <button class="primary" id="send-chat">Send ↗</button>
             </form>
             <div class="chat-disclaimer">
               Conversations are saved on this device. Clear conversation
@@ -486,6 +512,36 @@
                 Set <code>HAPPY_PASSWORD</code> in the server environment to
                 enable the password gate. No default password is provided.
               </p>
+            </div>
+            <div class="security-settings voice-settings-panel">
+              <h3>Voice Assistant & Speech</h3>
+              <p>Configure speech-to-text voice input and text-to-speech audio responses.</p>
+              <div class="system-row">
+                <span>Voice input (Speech recognition)</span>
+                <b id="voice-input-status">Checking browser support…</b>
+              </div>
+              <div class="system-row">
+                <span>Voice output (Speech synthesis)</span>
+                <b id="voice-output-status" class="cyan">Checking…</b>
+              </div>
+              <div class="system-row">
+                <span>Selected voice</span>
+                <select id="voice-select" class="voice-select" aria-label="Preferred voice">
+                  <option value="">Default browser voice</option>
+                </select>
+              </div>
+              <div class="system-row">
+                <span>Speech rate (<span id="voice-rate-display">1.0x</span>)</span>
+                <input type="range" id="voice-rate" min="0.7" max="1.4" step="0.1" value="1.0" aria-label="Speech rate" />
+              </div>
+              <div class="system-row">
+                <span>Speech pitch (<span id="voice-pitch-display">1.0</span>)</span>
+                <input type="range" id="voice-pitch" min="0.8" max="1.2" step="0.1" value="1.0" aria-label="Speech pitch" />
+              </div>
+              <div class="voice-test-actions">
+                <button type="button" id="test-voice-btn" class="tool-button">Test voice 🔊</button>
+                <button type="button" id="stop-voice-btn" class="tool-button">Stop audio ⏹</button>
+              </div>
             </div>
             <h2>TinyLlama 1.1B · Q2_K</h2>
             <p id="setup-status"></p>

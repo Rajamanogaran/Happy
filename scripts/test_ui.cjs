@@ -134,8 +134,18 @@ async function waitFor(fn) {
         $("#messages").textContent.includes("Retrieved excerpt"),
     );
     assert($("#messages").textContent.includes("Retrieved excerpt"));
+    assert(d.querySelector(".speak-msg-btn"));
+    assert($("#chat-mic-btn"));
+    assert($("#chat-voice-toggle"));
+    $("#chat-voice-toggle").click();
+    assert($("#chat-voice-label").textContent.includes("OFF"));
+    $("#chat-voice-toggle").click();
+    assert($("#chat-voice-label").textContent.includes("ON"));
     // Status refresh after welcome node removal must not throw.
     await w.eval("refreshStatus()");
+    $('[data-view="command"]').click();
+    assert($("#voice-assistant-btn"));
+    assert($("#voice-audio-toggle"));
     $('[data-view="knowledge"]').click();
     $("#note-title").value = "Solar notes";
     $("#note-content").value = "Sunlight becomes electricity";

@@ -27,13 +27,14 @@ python -m happy --host 0.0.0.0 --port 8000
 
 | Area | Implemented behavior |
 | --- | --- |
-| Dashboard | Responsive holographic core, navigation, real backend/model state, saved-memory count, UTC clock, reduced-motion support |
-| Skills | 100 searchable instruction presets in 10 categories; select a preset to open chat |
-| Conversation | SQLite persistence, reload restore, export, clear, optional web search and saved-note context |
+| Dashboard | Responsive holographic core, navigation, real backend/model state, saved-memory count, UTC clock, reduced-motion support, interactive voice mode |
+| Voice assistant | Web Speech API voice input (speech-to-text), text-to-speech spoken replies, interactive JARVIS core, per-message voice playback, customizable rate/pitch/voice in Settings |
+| Skills | 100 searchable instruction presets in 10 categories including Voice Assistant; select a preset to open chat |
+| Conversation | SQLite persistence, reload restore, export, clear, optional web search, microphone input, and saved-note context |
 | Offline tools | Safe arithmetic, JSON formatting, CSV → JSON, text statistics, keyword extraction, extractive summary, text diff, Base64 encode/decode, SHA-256, URL inspection, line deduplication |
 | Knowledge | Create, edit, delete, search, source provenance, `.txt`/`.md` loading, JSON export/import with duplicate skipping |
-| Agents | Web or saved-knowledge research, up to two simultaneous runs, progress, cancellation, retry, delete, persistent history, restart recovery |
-| Web explorer | Live search, public HTML/text page reading, links and source saving |
+| Agents | Web (with live DDGS and resilient offline/local intelligence fallback) or saved-knowledge research, up to two simultaneous runs, progress, cancellation, retry, delete, persistent history, restart recovery, voice playback |
+| Web explorer | Live search with resilient offline research fallback, public HTML/text page reading, links and source saving |
 | Access | Optional password gate, 8-hour HTTP-only sessions, logout, login throttling, same-origin mutation checks, request-size caps, security headers |
 
 The offline tool engine uses deterministic Python functions, not `eval`, arbitrary code execution, or a language model. Extractive summaries select sentences from the input; they do not create new claims. URL inspection does not contact websites. Decorative signal bars are artwork, not CPU telemetry.

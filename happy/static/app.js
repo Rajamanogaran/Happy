@@ -18,6 +18,326 @@ const sourceMarkup = (s, i) =>
   safeUrl(s.url) === "#"
     ? `<span class="source-note">[${i + 1}] ${esc(s.title)} · saved knowledge</span>`
     : `<a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer">[${i + 1}] ${esc(s.title)} ↗</a>`;
+
+// Voice Assistant state and capabilities
+const hasRecognition =
+  typeof window !== "undefined" &&
+  Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+const hasSynthesis =
+  typeof window !== "undefined" && Boolean(window.speechSynthesis);
+
+let voiceRepliesEnabled = true,
+  isListening = false,
+  isSpeaking = false,
+  currentRecognition = null,
+  voiceList = [],
+  selectedVoice = null,
+  voiceRate = 1.0,
+  voicePitch = 1.0;
+
+function cleanForSpeech(text) {
+  if (!text) return "";
+  return String(text)
+    .replace(/```[\s\S]*?```/g, " [code snippet omitted] ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\[(\d+)\]/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/[*_~#>]+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function stopVoice() {
+  if (isListening && currentRecognition) {
+    try {
+      currentRecognition.abort();
+    } catch (_) {}
+    isListening = false;
+  }
+  if (hasSynthesis) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch (_) {}
+    isSpeaking = false;
+  }
+  updateVoiceUI("idle");
+}
+
+function updateVoiceUI(state, text = "") {
+  const coreStage = $(".core-stage");
+  const heroBtn = $("#voice-assistant-btn");
+  const heroText = $("#voice-hero-text");
+  const banner = $("#voice-status-banner");
+  const bannerBadge = $("#voice-status-badge");
+  const bannerText = $("#voice-status-text");
+  const coreStatus = $("#core-status");
+  const micBtn = $("#chat-mic-btn");
+
+  if (state === "listening") {
+    coreStage?.classList.add("voice-active", "voice-listening");
+    coreStage?.classList.remove("voice-speaking");
+    heroBtn?.classList.add("active", "listening");
+    micBtn?.classList.add("listening");
+    if (heroText) heroText.textContent = "Listening… (Speak now)";
+    if (coreStatus) coreStatus.textContent = "🎙 LISTENING… SPEAK NOW";
+    if (banner) banner.hidden = false;
+    if (bannerBadge) bannerBadge.textContent = "LISTENING…";
+    if (bannerText) bannerText.textContent = text || "Listening to your voice…";
+  } else if (state === "speaking") {
+    coreStage?.classList.add("voice-active", "voice-speaking");
+    coreStage?.classList.remove("voice-listening");
+    heroBtn?.classList.add("active", "speaking");
+    heroBtn?.classList.remove("listening");
+    micBtn?.classList.remove("listening");
+    if (heroText) heroText.textContent = "Happy is speaking… (Click to stop)";
+    if (coreStatus) coreStatus.textContent = "🔊 SPEAKING…";
+    if (banner) banner.hidden = false;
+    if (bannerBadge) bannerBadge.textContent = "SPEAKING…";
+    if (bannerText) bannerText.textContent = text || "Reading response aloud…";
+  } else {
+    coreStage?.classList.remove("voice-active", "voice-listening", "voice-speaking");
+    heroBtn?.classList.remove("active", "listening", "speaking");
+    micBtn?.classList.remove("listening");
+    if (heroText) heroText.textContent = "Talk to Happy · Voice Assistant";
+    if (coreStatus) {
+      const isOnline = $("#model-state")?.classList.contains("cyan");
+      coreStatus.textContent = isOnline ? "LOCAL MODEL ONLINE" : "READY TO EXPLORE";
+    }
+    if (banner) banner.hidden = true;
+  }
+}
+
+function speak(text, onEnd) {
+  if (!hasSynthesis || !voiceRepliesEnabled) {
+    onEnd?.();
+    return;
+  }
+  const clean = cleanForSpeech(text);
+  if (!clean) {
+    onEnd?.();
+    return;
+  }
+  try {
+    window.speechSynthesis.cancel();
+  } catch (_) {}
+
+  const words = clean.split(" ");
+  const spokenText =
+    words.slice(0, 400).join(" ") + (words.length > 400 ? "…" : "");
+
+  const utterance = new SpeechSynthesisUtterance(spokenText);
+  if (selectedVoice) utterance.voice = selectedVoice;
+  utterance.rate = voiceRate;
+  utterance.pitch = voicePitch;
+
+  isSpeaking = true;
+  updateVoiceUI("speaking", spokenText.slice(0, 140) + "…");
+
+  utterance.onend = () => {
+    isSpeaking = false;
+    updateVoiceUI("idle");
+    onEnd?.();
+  };
+  utterance.onerror = () => {
+    isSpeaking = false;
+    updateVoiceUI("idle");
+    onEnd?.();
+  };
+
+  try {
+    window.speechSynthesis.speak(utterance);
+  } catch (err) {
+    isSpeaking = false;
+    updateVoiceUI("idle");
+  }
+}
+
+function startListening(targetInput) {
+  if (isSpeaking) {
+    stopVoice();
+  }
+  if (!hasRecognition) {
+    toast("Speech recognition is not supported in this browser. Try Chrome, Edge, or Safari.");
+    return;
+  }
+  if (isListening) {
+    stopVoice();
+    return;
+  }
+
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  try {
+    const recognition = new SpeechRec();
+    currentRecognition = recognition;
+    recognition.lang = "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    let finalTranscript = "";
+
+    recognition.onstart = () => {
+      isListening = true;
+      updateVoiceUI("listening");
+    };
+
+    recognition.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      const current = (finalTranscript + " " + interim).trim();
+      updateVoiceUI("listening", current);
+      if (targetInput && current) {
+        targetInput.value = current;
+      }
+    };
+
+    recognition.onerror = (event) => {
+      isListening = false;
+      updateVoiceUI("idle");
+      if (event.error !== "no-speech" && event.error !== "aborted") {
+        toast(`Voice recognition: ${event.error}. Check microphone permissions.`);
+      }
+    };
+
+    recognition.onend = () => {
+      isListening = false;
+      const result = finalTranscript.trim() || (targetInput ? targetInput.value.trim() : "");
+      if (!isSpeaking) {
+        updateVoiceUI("idle");
+      }
+      if (result) {
+        if (!targetInput || targetInput.id === "quick-message") {
+          send(result, true);
+        }
+      }
+    };
+
+    recognition.start();
+  } catch (err) {
+    isListening = false;
+    updateVoiceUI("idle");
+    toast(`Microphone error: ${err.message}`);
+  }
+}
+
+function loadVoices() {
+  if (!hasSynthesis) return;
+  try {
+    voiceList = window.speechSynthesis.getVoices();
+    const voiceSelect = $("#voice-select");
+    if (!voiceSelect) return;
+    if (voiceList.length) {
+      voiceSelect.innerHTML = voiceList
+        .map(
+          (v, i) =>
+            `<option value="${i}">${esc(v.name)} (${esc(v.lang)})</option>`,
+        )
+        .join("");
+      const defaultIdx = voiceList.findIndex(
+        (v) => v.default || v.lang.startsWith("en"),
+      );
+      if (defaultIdx >= 0) {
+        voiceSelect.value = defaultIdx;
+        selectedVoice = voiceList[defaultIdx];
+      }
+    }
+  } catch (_) {}
+}
+
+function initVoice() {
+  if ($("#voice-input-status")) {
+    $("#voice-input-status").textContent = hasRecognition
+      ? "Supported (Web Speech API)"
+      : "Not supported in current browser";
+    $("#voice-input-status").classList.toggle("cyan", hasRecognition);
+  }
+  if ($("#voice-output-status")) {
+    $("#voice-output-status").textContent = hasSynthesis
+      ? "Supported (Speech Synthesis)"
+      : "Not supported in current browser";
+    $("#voice-output-status").classList.toggle("cyan", hasSynthesis);
+  }
+
+  loadVoices();
+  if (hasSynthesis && window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  $("#voice-select")?.addEventListener("change", (e) => {
+    const idx = +e.target.value;
+    selectedVoice = voiceList[idx] || null;
+  });
+
+  $("#voice-rate")?.addEventListener("input", (e) => {
+    voiceRate = parseFloat(e.target.value) || 1.0;
+    if ($("#voice-rate-display"))
+      $("#voice-rate-display").textContent = voiceRate.toFixed(1) + "x";
+  });
+
+  $("#voice-pitch")?.addEventListener("input", (e) => {
+    voicePitch = parseFloat(e.target.value) || 1.0;
+    if ($("#voice-pitch-display"))
+      $("#voice-pitch-display").textContent = voicePitch.toFixed(1);
+  });
+
+  $("#voice-assistant-btn")?.addEventListener("click", () => {
+    if (isListening || isSpeaking) {
+      stopVoice();
+    } else {
+      startListening();
+    }
+  });
+
+  $("#voice-audio-toggle")?.addEventListener("click", () => {
+    voiceRepliesEnabled = !voiceRepliesEnabled;
+    const icon = $("#voice-audio-icon");
+    if (icon) icon.textContent = voiceRepliesEnabled ? "🔊" : "🔇";
+    const chatToggle = $("#chat-voice-label");
+    if (chatToggle)
+      chatToggle.textContent = voiceRepliesEnabled
+        ? "🔊 Voice: ON"
+        : "🔇 Voice: OFF";
+    toast(
+      voiceRepliesEnabled
+        ? "Spoken voice responses enabled"
+        : "Spoken voice responses muted",
+    );
+  });
+
+  $("#chat-voice-toggle")?.addEventListener("click", () => {
+    voiceRepliesEnabled = !voiceRepliesEnabled;
+    const chatToggle = $("#chat-voice-label");
+    if (chatToggle)
+      chatToggle.textContent = voiceRepliesEnabled
+        ? "🔊 Voice: ON"
+        : "🔇 Voice: OFF";
+    const icon = $("#voice-audio-icon");
+    if (icon) icon.textContent = voiceRepliesEnabled ? "🔊" : "🔇";
+    toast(
+      voiceRepliesEnabled
+        ? "Voice responses enabled"
+        : "Voice responses muted",
+    );
+  });
+
+  $("#chat-mic-btn")?.addEventListener("click", () => {
+    const input = $("#chat-message");
+    startListening(input);
+  });
+
+  $("#voice-stop-btn")?.addEventListener("click", stopVoice);
+  $("#stop-voice-btn")?.addEventListener("click", stopVoice);
+
+  $("#test-voice-btn")?.addEventListener("click", () => {
+    speak("Hello! I am Happy, your local-first voice assistant. I am ready to help.");
+  });
+}
 async function api(path, data, method) {
   const r = await fetch("/api/" + path, {
     method: method || (data ? "POST" : "GET"),
@@ -169,12 +489,29 @@ function addMessage(role, text, sources = [], warning) {
   el.innerHTML =
     `<div class="label">${role === "user" ? "YOU" : "HAPPY"}</div><div>${esc(text)}</div>` +
     (warning ? `<p class="warning">${esc(warning)}</p>` : "") +
-    sources.map((s, i) => `<div>${sourceMarkup(s, i)}</div>`).join("");
+    sources.map((s, i) => `<div>${sourceMarkup(s, i)}</div>`).join("") +
+    (role === "assistant"
+      ? `<div class="msg-tools"><button type="button" class="tool-button speak-msg-btn" aria-label="Listen to message">🔊 Listen</button></div>`
+      : "");
   $("#messages").append(el);
   $("#messages").scrollTop = $("#messages").scrollHeight;
+  if (role === "assistant") {
+    el.querySelector(".speak-msg-btn")?.addEventListener("click", (e) => {
+      const btn = e.currentTarget;
+      if (isSpeaking) {
+        stopVoice();
+        btn.textContent = "🔊 Listen";
+      } else {
+        btn.textContent = "⏹ Stop";
+        speak(text, () => {
+          btn.textContent = "🔊 Listen";
+        });
+      }
+    });
+  }
   return el;
 }
-async function send(text) {
+async function send(text, speakResponse = false) {
   if (busy) return;
   if (!conversationReady)
     return toast(
@@ -206,6 +543,9 @@ async function send(text) {
         warning: r.warning,
       },
     );
+    if (voiceRepliesEnabled || speakResponse) {
+      speak(r.answer);
+    }
   } catch (e) {
     loading.remove();
     addMessage("assistant", e.message);
@@ -446,10 +786,19 @@ async function loadAgents() {
       ? jobs
           .map(
             (j) =>
-              `<article class="job"><span class="job-status">${esc(j.status.toUpperCase())}</span><h3>${esc(j.topic)}</h3><ol>${j.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>${j.result ? `<pre>${esc(j.result)}</pre>` : ""}${j.sources.map(sourceMarkup).join("")}${j.status === "running" ? `<button data-cancel-job="${j.id}">Cancel research</button>` : ""}${!["running", "cancelling"].includes(j.status) ? `<button data-retry-job="${j.id}">Run again ↗</button> <button data-delete-job="${j.id}">Delete run</button>` : ""}${j.status === "complete" ? `<button data-save-job="${j.id}">Save research brief +</button>` : ""}</article>`,
+              `<article class="job"><span class="job-status">${esc(j.status.toUpperCase())}</span><h3>${esc(j.topic)}</h3><ol>${j.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>${j.result ? `<pre>${esc(j.result)}</pre>` : ""}${j.sources.map(sourceMarkup).join("")}${j.status === "running" ? `<button data-cancel-job="${j.id}">Cancel research</button>` : ""}${!["running", "cancelling"].includes(j.status) ? `<button data-retry-job="${j.id}">Run again ↗</button> <button data-delete-job="${j.id}">Delete run</button>` : ""}${j.status === "complete" ? `<button data-save-job="${j.id}">Save research brief +</button> <button type="button" class="tool-button" data-speak-job="${j.id}">Listen to brief 🔊</button>` : ""}</article>`,
           )
           .join("")
       : '<div class="empty-state"><div>⌘</div><h3>Ready for a mission.</h3><p>Give your crew a research topic to begin.</p></div>';
+    document.querySelectorAll("[data-speak-job]").forEach(
+      (b) =>
+        (b.onclick = () => {
+          const j = jobs.find((item) => item.id === b.dataset.speakJob);
+          if (j && j.result) {
+            speak(`Research brief for ${j.topic}. ${j.result}`);
+          }
+        }),
+    );
     document.querySelectorAll("[data-retry-job]").forEach(
       (b) =>
         (b.onclick = async () => {
@@ -686,3 +1035,4 @@ $("#save-tool").onclick = async () => {
     toast(error.message);
   }
 };
+initVoice();

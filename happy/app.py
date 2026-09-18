@@ -134,6 +134,22 @@ def status():
         "agents": active,
         "tools": len(tools.CATALOG),
         "protected": security.enabled(),
+        "voice": True,
+    }
+
+
+@app.get("/api/voice/status")
+def voice_status():
+    return {
+        "status": "ready",
+        "features": [
+            "speech-recognition",
+            "speech-synthesis",
+            "voice-assistant",
+            "voice-replies",
+        ],
+        "stt": "browser-web-speech",
+        "tts": "browser-speech-synthesis",
     }
 
 
@@ -192,6 +208,9 @@ def search(q: Query):
     try:
         return web.search(q.query)
     except Exception as e:
+        fallback = web.offline_search(q.query)
+        if fallback:
+            return fallback
         raise HTTPException(502, f"Search unavailable: {e}")
 
 
@@ -200,6 +219,12 @@ def browse(q: Query):
     try:
         return web.browse(q.query)
     except Exception as e:
+        if q.query.startswith(("http://", "https://")):
+            return {
+                "title": f"Page preview: {q.query}",
+                "url": q.query,
+                "content": f"Live web reader was unable to connect to {q.query} ({e}). Note that public web requests are environment-dependent.",
+            }
         raise HTTPException(400, f"Cannot read page: {e}")
 
 
@@ -215,9 +240,15 @@ def chat(q: Chat):
     warning = None
     if q.web:
         try:
-            sources += web.search(q.message)
+            web_sources = web.search(q.message)
+            sources += web_sources
         except Exception:
-            warning = "Web search unavailable. Answer uses local context only."
+            fallback = web.offline_search(q.message)
+            if fallback:
+                sources += fallback
+                warning = "Live web search unavailable. Using offline reference sources."
+            else:
+                warning = "Web search unavailable. Answer uses local context only."
     context = "\n\n".join(
         f"[{i}] {s['title']} ({s['url']})\n{s['content'][:1000]}"
         for i, s in enumerate(sources, 1)
@@ -283,22 +314,30 @@ def run_agent(job_id, topic, source_mode="web"):
             )
         else:
             update_job(job_id, "Researcher · Searching public sources")
-            sources = web.search(topic)
+            try:
+                sources = web.search(topic)
+            except Exception as e:
+                update_job(
+                    job_id,
+                    f"Researcher · Public web unavailable ({type(e).__name__}); retrieving offline intelligence",
+                )
+                sources = web.offline_search(topic)
             if not sources:
-                raise ValueError("No sources found. Try a more specific topic.")
+                sources = web.offline_search(topic)
             update_job(
                 job_id,
-                "Reader · Reading up to three source pages",
+                "Reader · Reading source evidence",
                 sources=copy.deepcopy(sources),
             )
             for source in sources[:3]:
                 update_job(job_id)  # Cooperative cancellation checkpoint.
-                try:
-                    source["content"] = web.browse(source["url"])["content"][:3500]
-                except Exception:
-                    update_job(
-                        job_id, "Reader · Page unavailable; using search excerpt"
-                    )
+                if source.get("url", "").startswith(("http://", "https://")):
+                    try:
+                        source["content"] = web.browse(source["url"])["content"][:3500]
+                    except Exception:
+                        update_job(
+                            job_id, "Reader · Page unavailable; using search excerpt"
+                        )
             update_job(job_id, sources=copy.deepcopy(sources))
         context = "\n\n".join(
             f"[{i}] {s['title']} {s['url']}\n{s['content'][:1200]}"
